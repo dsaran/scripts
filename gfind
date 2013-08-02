@@ -1,0 +1,62 @@
+#!/bin/bash
+#
+# gfind - display the result of 'find' command in a dialog menu
+#
+# Author : Daniel Saran
+#
+# -------------------------------------------------------------------------
+#
+# This script allows user to view 'find' command result in a menu and select
+# an item to edit.
+# 
+# Example:
+#  $ findfiles.sh *.java
+#
+
+#set -vx
+#trap read DEBUG
+
+SHOW=0
+EDITOR=vi
+MENU=menu.sh
+
+which $MENU > /dev/null 
+if [ $? != 0 ]
+then
+	echo "Unable to find $MENU in PATH" 
+	exit 1
+fi
+
+if [ $# == 1 ]
+then
+    SEARCH_PATH=./
+    PATTERN="$1"
+elif [ "X$1" == "X-s" ]
+then
+    SEARCH_PATH=./
+    PATTERN="$2"
+    SHOW=1
+elif [ $# == 2 ]
+then
+    SEARCH_PATH=$1
+    PATTERN="$2"
+else
+    echo "Usage: $0 [search-path] filename"
+    exit 1
+fi
+
+RESULT=$(find "$SEARCH_PATH" -iname "$PATTERN"\* -and -not -name \*.class -and -not -name \*.pyc -and -not -wholename \*.svn\*)
+
+if [ "$?" != "0" ]
+then
+   exit $?
+fi
+
+SELECTED=$($MENU $RESULT)
+if [ $? = 0 ]
+then
+    $EDITOR "$SELECTED"
+    clear
+    echo "$SELECTED"
+fi
+
